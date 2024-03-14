@@ -1,0 +1,51 @@
+#lang racket
+
+;;Define a defun construct like in Common Lisp, where (defun f (x1 x2 ...) body) is used for defining a
+;;function f with parameters x1 x2 ....
+;;Every function defined in this way should also be able to return a value x by calling (ret x)
+
+(define ret-store '())
+(define (ret x)
+  ((car ret-store) x))
+  
+(define-syntax defun
+  (syntax-rules ()
+    ((_ f (param ...) body ...)
+     (define (f param ...)
+       (let ((out (call/cc
+                   (lambda (x)
+                     (set! ret-store (cons x ret-store))
+                     body ... ))))
+         (set! ret-store (cdr ret-store))
+         out)))))
+
+; Define a function using the defun macro
+(defun my-function (x x1 x2)
+  (display "Inside my-function\n")
+  (display x)
+  (ret (* x2 2)))
+
+; Call the defined function
+(define result (my-function 5 6 7))
+
+; Print the result
+(display "\nReturned result: ")
+(display result)
+(newline)
+
+(defun outer ()
+  (display "Start outer\n")
+  (inner)
+  (ret "stop")
+  (display "End outer\n"))
+
+(defun inner ()
+  (display "Start inner\n")
+  (ret "Returning from inner") ; This will return to the point just after the (inner) call in outer
+  (display "End inner\n"))
+
+(outer)
+
+
+
+         

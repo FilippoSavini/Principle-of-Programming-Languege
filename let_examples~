@@ -1,0 +1,12 @@
+#lang racket
+(define (loop-no-vars)
+  (let ((x 0))
+    (let label ()
+      (when (< x 10)
+        (display x)
+        (newline)
+        (set! x (+ 1 x))
+        (label))
+      (display x)
+      (display "]")))
+)

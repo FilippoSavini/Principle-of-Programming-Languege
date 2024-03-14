@@ -1,0 +1,73 @@
+#lang racket
+
+;; for-expression like Python
+;; (for x in '(1 2 3) (display x) (newline))
+
+(define-syntax for
+  (syntax-rules (in)
+    ((_ var in list body ...)
+     (for-each (lambda (var)
+                 body ...)
+                 list))))
+(for i in '(1 2 3)
+  (display i))
+(newline)
+
+;;Cartesian product
+
+(define (listify x)
+  (if (list? x)
+      x
+      (list x)))
+
+(define (cart-prod x y)
+  (let ((val '()))
+    (for-each (lambda (a)
+                (for-each (lambda (b)
+                            (set! val (append val
+                                              (list (append (listify a) (listify b))))))
+                          y))
+              x)
+    val))
+
+(cart-prod '(1 2) '(a b))
+(newline)
+
+
+;; Let's generalize the previous example in a macro
+;; (list/co (* x x) from x '(1 2 3)) -> '(1 4 9)
+;; (list/co (* x y) from x '(1 2 3) y '(2 4 6)) -> '(2 4 6 4 8 12 6 12 18)
+;; (list/co (* x y) when (even? x) from x '(1 2 3) y '(2 4 6)) -> '(4 8 12)
+;; (list/co (append (listify x) (listify y)) from x '(1 2) y '(a b)) -> (1 a) (1 b) (2 a) (2 b)
+
+
+(define (concat-map lst f)
+  (apply append (map f lst)))
+
+(define-syntax list/co
+  (syntax-rules (when from)
+    
+    ((_ expr from v1 l1)
+     (concat-map l1
+                 (lambda (v1)
+                   (list expr))))
+    
+    ((_ expr from v1 l1 v2 l2 ...)
+     (concat-map l1 
+                 (lambda (v1)
+                   (list/co expr from v2 l2 ...))))
+    
+    ((_ expr when condition from v1 l1)
+     (concat-map l1
+                 (lambda (v1)
+                   (if condition
+                       (list expr)
+                       '()))))
+    
+    ((_ expr when condition from v1 l1 v2 l2 ...)
+     (concat-map l1
+                 (lambda (v1)
+                   (list/co expr when condition 
+                            from v2 l2 ...))))))
+
+(list/co (* x x) from x '(1 2 3))

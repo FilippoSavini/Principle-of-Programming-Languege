@@ -1,0 +1,28 @@
+#lang racket
+;;light version of fib
+
+(define values '())
+
+(define (add-value idx value)
+  (set! values (list values (idx value))))
+
+(define (get-value idx)
+  (define (get-tail idx L)
+    (let ((x (car L))
+          (xs (cdr L)))
+      (cond ((null? x) x)
+            ((= (car x) idx) cdr x)
+            (else (get-tail idx xs)))))
+  (get-tail idx values))
+          
+
+(define (fib n)
+  (begin(
+         (let x (get-value n))
+         (cond ((not(null? x)) x)
+               ((= n 0) 0)
+               ((= n 1) 1)
+               (else (begin
+                       (let (x (+ (fib (- n 1)) (fib (- n 2)))))
+                       (add value n x)
+                       x))))))
